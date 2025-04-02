@@ -30,19 +30,20 @@
       e.preventDefault();
       resposta.textContent = "";
 
-      const data = {
-        nome: form.nome.value,
-        email: form.email.value,
-        mensagem: form.mensagem.value,
-      };
+      // Criando os parâmetros no formato que o Google Apps Script espera
+      const data = new URLSearchParams();
+      data.append('nome', form.nome.value);
+      data.append('email', form.email.value);
+      data.append('mensagem', form.mensagem.value);
 
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec", {
           method: "POST",
-          body: JSON.stringify(data),
+          body: data,
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
+          redirect: "follow" // Importante para seguir redirecionamentos do Google Apps Script
         });
 
         const text = await res.text();
