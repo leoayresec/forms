@@ -26,12 +26,6 @@
     .form-group {
       margin-bottom: 20px;
     }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #34495e;
-    }
     input, textarea {
       width: 100%;
       padding: 12px;
@@ -100,18 +94,15 @@
     
     <form id="contactForm">
       <div class="form-group">
-        <label for="nome">Nome:</label>
-        <input type="text" id="nome" name="nome" required>
+        <input type="text" name="nome" placeholder="Seu nome" required />
       </div>
       
       <div class="form-group">
-        <label for="email">E-mail:</label>
-        <input type="email" id="email" name="email" required>
+        <input type="email" name="email" placeholder="Seu e-mail" required />
       </div>
       
       <div class="form-group">
-        <label for="mensagem">Mensagem:</label>
-        <textarea id="mensagem" name="mensagem" required></textarea>
+        <textarea name="mensagem" placeholder="Digite sua mensagem" required></textarea>
       </div>
       
       <button type="submit">Enviar Mensagem</button>
@@ -130,77 +121,4 @@
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.getElementById('contactForm');
       const loading = document.getElementById('loading');
-      const successAlert = document.getElementById('successAlert');
-      const errorAlert = document.getElementById('errorAlert');
-      
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Esconde alertas anteriores e mostra loading
-        successAlert.style.display = 'none';
-        errorAlert.style.display = 'none';
-        loading.style.display = 'block';
-        
-        try {
-          // Coleta os dados do formulário
-          const formData = new FormData(form);
-          const params = new URLSearchParams();
-          
-          // Adiciona os parâmetros manualmente para garantir o formato correto
-          params.append('nome', formData.get('nome'));
-          params.append('email', formData.get('email'));
-          params.append('mensagem', formData.get('mensagem'));
-          
-          console.log("Enviando dados:", Object.fromEntries(params.entries()));
-          
-          // URL do seu Google Apps Script (substitua pela sua URL)
-          const scriptUrl = 'https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec';
-          
-          const response = await fetch(scriptUrl, {
-            method: 'POST',
-            body: params,
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            redirect: 'follow'
-          });
-          
-          // Processa a resposta
-          const textResponse = await response.text();
-          let result;
-          
-          try {
-            result = JSON.parse(textResponse);
-          } catch (e) {
-            throw new Error(textResponse || "Resposta inválida do servidor");
-          }
-          
-          console.log("Resposta recebida:", result);
-          
-          loading.style.display = 'none';
-          
-          if (result.status === 'success') {
-            successAlert.innerHTML = `
-              <strong>Sucesso!</strong> ${result.message}<br><br>
-              <strong>Detalhes:</strong><br>
-              Nome: ${result.data.nome}<br>
-              E-mail: ${result.data.email}<br>
-              Data: ${result.data.timestamp}
-            `;
-            successAlert.style.display = 'block';
-            form.reset();
-          } else {
-            errorAlert.textContent = result.message || "Erro desconhecido";
-            errorAlert.style.display = 'block';
-          }
-        } catch (error) {
-          console.error("Erro:", error);
-          loading.style.display = 'none';
-          errorAlert.textContent = 'Erro ao enviar: ' + error.message;
-          errorAlert.style.display = 'block';
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+      const successAlert = document.getElementById('success
