@@ -28,34 +28,33 @@
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
-      resposta.textContent = "";
+      resposta.textContent = "Enviando...";
 
-      // Criando os parâmetros no formato que o Google Apps Script espera
-      const data = new URLSearchParams();
-      data.append('nome', form.nome.value);
-      data.append('email', form.email.value);
-      data.append('mensagem', form.mensagem.value);
+      const formData = new FormData(form);
+      const urlParams = new URLSearchParams(formData);
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec", {
           method: "POST",
-          body: data,
+          body: urlParams,
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          redirect: "follow" // Importante para seguir redirecionamentos do Google Apps Script
+          redirect: "follow"
         });
 
-        const text = await res.text();
-
-        if (res.ok) {
+        const result = await response.json();
+        
+        if (result.status === "success") {
           resposta.innerHTML = "<p class='success'>Mensagem enviada com sucesso!</p>";
           form.reset();
         } else {
-          resposta.innerHTML = `<p class='error'>Erro ${res.status}: ${text}</p>`;
+          resposta.innerHTML = `<p class='error'>Erro: ${result.message}</p>`;
+          console.error("Erro detalhado:", result);
         }
       } catch (err) {
         resposta.innerHTML = `<p class='error'>Erro na conexão: ${err.message}</p>`;
+        console.error("Erro completo:", err);
       }
     });
   </script>
