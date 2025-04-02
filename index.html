@@ -118,74 +118,28 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('bet-form');
-      const submitBtn = document.getElementById('submit-btn');
-      const resultMessage = document.getElementById('result-message');
-      
-      // Carrega a data atual por padrão
-      document.getElementById('date').valueAsDate = new Date();
-      
-      submitBtn.addEventListener('click', function() {
-        // Validação dos campos
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-        
-        // Desabilita o botão durante o envio
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando...';
-        
-        // Prepara os dados
-        const data = {
-          data: document.getElementById('date').value,
-          odd: parseFloat(document.getElementById('odd').value),
-          resultado: document.getElementById('result').value
-        };
-        
-        // Limpa mensagens anteriores
-        resultMessage.style.display = 'none';
-        
-        // Envia para o Google Apps Script
-        fetch('https://script.google.com/macros/s/AKfycbwSfwx6PnrvVsNb2uSXq_4E-cwXq6u7YqRRmqpFz7SUbJWEui1FgEwZ6__REXk0oVH-fw/exec', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Erro na rede');
-          return response.json();
-        })
-        .then(data => {
-          if (data && data.success) {
-            showMessage('✅ Registro salvo com sucesso!', true);
-            form.reset();
-            // Restaura a data atual após reset
-            document.getElementById('date').valueAsDate = new Date();
-          } else {
-            throw new Error(data?.message || 'Resposta inválida do servidor');
-          }
-        })
-        .catch(error => {
-          showMessage('❌ Erro: ' + error.message, false);
-          console.error('Erro:', error);
-        })
-        .finally(() => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Registrar Aposta';
-        });
+    document.getElementById('submit-btn').addEventListener('click', function() {
+      const data = {
+        data: document.getElementById('date').value,
+        odd: document.getElementById('odd').value,
+        resultado: document.getElementById('result').value
+      };
+
+      fetch('https://script.google.com/macros/s/AKfycbwSfwx6PnrvVsNb2uSXq_4E-cwXq6u7YqRRmqpFz7SUbJWEui1FgEwZ6__REXk0oVH-fw/exec', {
+        method: 'POST',
+        mode: 'no-cors',  // Isso ignora CORS
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+      .then(() => {
+        alert('Dados enviados com sucesso! Verifique a planilha.');
+        document.getElementById('bet-form').reset();
+      })
+      .catch(error => {
+        alert('Erro ao enviar: ' + error.message);
       });
-      
-      function showMessage(message, isSuccess) {
-        resultMessage.textContent = message;
-        resultMessage.className = isSuccess ? 'success' : 'error';
-        resultMessage.style.display = 'block';
-        // Rolagem suave para a mensagem
-        resultMessage.scrollIntoView({ behavior: 'smooth' });
-      }
     });
   </script>
 </body>
