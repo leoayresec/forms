@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Apostas</title>
@@ -12,7 +13,74 @@
       padding: 20px;
       background-color: #f5f5f5;
     }
-    /* (Mantenha seus estilos existentes) */
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-container {
+      background-color: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #34495e;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #result-message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .required:after {
+      content: " *";
+      color: #e74c3c;
+    }
   </style>
 </head>
 <body>
@@ -20,7 +88,25 @@
     <h1>Registro de Apostas</h1>
     
     <form id="bet-form">
-      <!-- (Mantenha seus campos de formulário existentes) -->
+      <div class="form-group">
+        <label for="date" class="required">Data</label>
+        <input type="date" id="date" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="odd" class="required">Odd</label>
+        <input type="number" id="odd" step="0.01" min="1" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="result" class="required">Resultado</label>
+        <select id="result" required>
+          <option value="">Selecione...</option>
+          <option value="Green">Green</option>
+          <option value="Red">Red</option>
+        </select>
+      </div>
+      
       <button type="button" id="submit-btn">Registrar Aposta</button>
     </form>
     
@@ -28,34 +114,67 @@
   </div>
 
   <script>
-    document.getElementById('submit-btn').addEventListener('click', function() {
-      const data = {
-        data: document.getElementById('date').value,
-        odd: parseFloat(document.getElementById('odd').value),
-        resultado: document.getElementById('result').value
-      };
-
-      fetch('https://script.google.com/macros/s/AKfycbwSfwx6PnrvVsNb2uSXq_4E-cwXq6u7YqRRmqpFz7SUbJWEui1FgEwZ6__REXk0oVH-fw/exec', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(data => {
-        const resultDiv = document.getElementById('result-message');
-        resultDiv.textContent = data.message;
-        resultDiv.className = data.success ? 'success' : 'error';
-        resultDiv.style.display = 'block';
+    document.addEventListener('DOMContentLoaded', function() {
+      const submitBtn = document.getElementById('submit-btn');
+      const resultMessage = document.getElementById('result-message');
+      
+      submitBtn.addEventListener('click', function() {
+        // Reset message
+        resultMessage.style.display = 'none';
         
-        if(data.success) {
-          document.getElementById('bet-form').reset();
+        // Get form values
+        const date = document.getElementById('date').value;
+        const odd = document.getElementById('odd').value;
+        const result = document.getElementById('result').value;
+        
+        // Validate form
+        if (!date || !odd || !result) {
+          showMessage('Por favor, preencha todos os campos obrigatórios', false);
+          return;
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
+        
+        // Disable button during submission
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+        
+        // Prepare data
+        const data = {
+          data: date,
+          odd: parseFloat(odd),
+          resultado: result
+        };
+        
+        // Send to Google Apps Script
+        fetch('https://script.google.com/macros/s/AKfycbwSfwx6PnrvVsNb2uSXq_4E-cwXq6u7YqRRmqpFz7SUbJWEui1FgEwZ6__REXk0oVH-fw/exec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showMessage('Registro salvo com sucesso!', true);
+            document.getElementById('bet-form').reset();
+          } else {
+            showMessage('Erro: ' + (data.message || 'Ocorreu um erro'), false);
+          }
+        })
+        .catch(error => {
+          showMessage('Erro na conexão: ' + error.message, false);
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Registrar Aposta';
+        });
       });
+      
+      function showMessage(message, isSuccess) {
+        resultMessage.textContent = message;
+        resultMessage.className = isSuccess ? 'success' : 'error';
+        resultMessage.style.display = 'block';
+      }
     });
   </script>
 </body>
