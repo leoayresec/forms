@@ -99,7 +99,7 @@
   <div class="container">
     <h1>Formulário de Contato</h1>
     
-    <form id="contactForm">
+    <form id="contactForm" action="https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec" method="POST" target="hiddenFrame">
       <div class="form-group">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
@@ -124,6 +124,9 @@
     </div>
     
     <div id="response" class="alert"></div>
+    
+    <!-- Iframe oculto para receber a resposta -->
+    <iframe name="hiddenFrame" style="display:none;"></iframe>
   </div>
 
   <script>
@@ -132,53 +135,60 @@
       const loading = document.getElementById('loading');
       const responseDiv = document.getElementById('response');
       
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Mostra o loading e esconde mensagens anteriores
+      // Adiciona evento para mostrar o loading
+      form.addEventListener('submit', function() {
         loading.style.display = 'block';
         responseDiv.style.display = 'none';
-        
-        // Coleta os dados do formulário
-        const formData = {
-          nome: form.nome.value,
-          email: form.email.value,
-          mensagem: form.mensagem.value
-        };
-        
-        try {
-          // URL do seu Google Apps Script (SUBSTITUA pela sua URL)
-          const scriptUrl = 'https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec';
-          
-          const response = await fetch(scriptUrl, {
-            method: 'POST',
-            body: JSON.stringify(formData),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          const result = await response.json();
-          
-          loading.style.display = 'none';
-          
-          if (result.status === 'success') {
-            responseDiv.className = 'alert alert-success';
-            responseDiv.textContent = result.message;
-            responseDiv.style.display = 'block';
-            form.reset();
-          } else {
-            throw new Error(result.message || 'Erro desconhecido');
-          }
-        } catch (error) {
-          loading.style.display = 'none';
-          responseDiv.className = 'alert alert-danger';
-          responseDiv.textContent = 'Erro: ' + error.message;
-          responseDiv.style.display = 'block';
-          console.error('Erro:', error);
-        }
       });
+      
+      // Verifica se há parâmetros de resposta na URL (para o método GET)
+      const urlParams = new URLSearchParams(window.location.search);
+      const status = urlParams.get('status');
+      const message = urlParams.get('message');
+      
+      if (status && message) {
+        loading.style.display = 'none';
+        responseDiv.textContent = message;
+        responseDiv.className = status === 'success' ? 'alert alert-success' : 'alert alert-danger';
+        responseDiv.style.display = 'block';
+        
+        // Limpa a URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Alternativa usando JSONP (método GET)
+      window.handleResponse = function(response) {
+        loading.style.display = 'none';
+        responseDiv.textContent = response.message;
+        responseDiv.className = response.status === 'success' ? 'alert alert-success' : 'alert alert-danger';
+        responseDiv.style.display = 'block';
+        
+        if (response.status === 'success') {
+          form.reset();
+        }
+      };
     });
+    
+    // Função alternativa para enviar via JSONP
+    function submitFormJsonp() {
+      const form = document.getElementById('contactForm');
+      const loading = document.getElementById('loading');
+      const responseDiv = document.getElementById('response');
+      
+      loading.style.display = 'block';
+      responseDiv.style.display = 'none';
+      
+      const script = document.createElement('script');
+      script.src = `https://script.google.com/macros/s/AKfycbwqVhjkzR0BRN3aAoMFPfE5rth4JEg6djItd9615XVIafs8HP3ekTDzFyyl-0HVg4Zveg/exec?nome=${
+        encodeURIComponent(form.nome.value)
+      }&email=${
+        encodeURIComponent(form.email.value)
+      }&mensagem=${
+        encodeURIComponent(form.mensagem.value)
+      }&callback=handleResponse`;
+      
+      document.body.appendChild(script);
+    }
   </script>
 </body>
 </html>
